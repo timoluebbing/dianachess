@@ -6,9 +6,6 @@ import copy
 ## Sebastian Volz
 ## Timo Luebbing
 
-# seb update 2
-
-
 class Agent:
     def __init__(self):
         self.move_queue = None
@@ -51,6 +48,7 @@ class Agent:
         player_turn = gs.whiteToMove
         depth = 4
         # move = alpha_beta_search(gs, player_turn, depth)
+        print('hey')
         score, move = alpha_beta(gs, player_turn, -math.inf, math.inf, depth)
         self.update_move(move, score, depth)
 
@@ -87,13 +85,24 @@ def is_start_game(gs):
     return board.count("wp") == 8 and board.count("bp") == 8
 
 def is_end_game(gs):
-    pass
+    board = gs.board
+    white_pieces = [piece for piece in board if piece[0] == "w"]
+    black_pieces = [piece for piece in board if piece[0] == "b"]
+    if len(white_pieces) + len(black_pieces) <= 8:
+        return True
+    pawns = white_pieces.count("wp") + black_pieces.count("bp")
+    if pawns <= 4:
+        return True
+    special_pieces = ["wN", "bN", "wB", "bB", "wR", "bR"]
+    if len([piece in special_pieces for piece in white_pieces]) <= 2 or len(
+       [piece in special_pieces for piece in black_pieces]) <= 2:
+        return True
 
 def utility(gs, is_max_turn):
     if is_start_game(gs):
-        pass
+        pass 
     if is_end_game(gs):
-        pass
+        print("is endgame!!!!")
     
     return howManyPiecesLost(gs, is_max_turn)
 
@@ -124,7 +133,7 @@ def max_value(gs, is_max_turn, alpha, beta, depth):
     for move in moves:
         nextGameState = copy.deepcopy(gs)
         nextGameState.makeMove(move)
-        v_max = max(v_max, min_value(nextGameState, not is_max_turn, alpha, beta, depth - 1))
+        v_max = max(v_max, min_value(nextGameState, is_max_turn, alpha, beta, depth - 1))
         if v_max >= beta:
             return v_max
         alpha = max(alpha, v_max)
@@ -141,7 +150,7 @@ def min_value(gs, is_max_turn, alpha, beta, depth):
     for move in moves:
         nextGameState = copy.deepcopy(gs)
         nextGameState.makeMove(move)
-        v_min = min(v_min, max_value(nextGameState, not is_max_turn, alpha, beta, depth - 1))
+        v_min = min(v_min, max_value(nextGameState, is_max_turn, alpha, beta, depth - 1))
         if v_min <= alpha:
             return v_min
         beta = min(beta, v_min)
@@ -162,7 +171,7 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth):
         childGameState = copy.deepcopy(gs)
         childGameState.makeMove(move)
 
-        utility_child, move_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1)
+        utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1)[0]
 
         if is_max_turn and best_value < utility_child:
             best_value = utility_child
