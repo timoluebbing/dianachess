@@ -6,6 +6,9 @@ import copy
 ## Sebastian Volz
 ## Timo Luebbing
 
+# seb update
+
+
 class Agent:
     def __init__(self):
         self.move_queue = None
