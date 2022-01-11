@@ -3,6 +3,8 @@ import ChessEngine
 import math
 import copy
 
+## Sebastian Volz
+## Timo Luebbing
 
 class Agent:
     def __init__(self):
