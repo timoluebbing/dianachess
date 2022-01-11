@@ -86,7 +86,12 @@ def isChecked(gs: ChessEngine.GameState, is_white_turn):
     checkExists = gs.checkForPinsAndChecks()[0]
     ### how do we check if "our player" checked the other one and not the we are checked?
     if checkExists:
-        return 1
+        # we are in the position to check
+        if gs.whiteToMove == is_white_turn:
+            return 1
+        # our opponent is in the position to check
+        else:
+            return -1
     else:
         return 0
 
