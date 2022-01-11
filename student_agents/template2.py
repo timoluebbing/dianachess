@@ -2,7 +2,7 @@ import random
 import ChessEngine
 import math
 import copy
-
+import sys
 ## Sebastian Volz
 ## Timo Luebbing
 
@@ -49,6 +49,13 @@ class Agent:
         depth = 4
         # move = alpha_beta_search(gs, player_turn, depth)
         print('hey')
+
+        time = 20
+        for i, argument in enumerate(sys.argv):
+            if argument == '--time_control':
+                time = sys.argv[i+1]
+        print(time)
+
         score, move = alpha_beta(gs, player_turn, -math.inf, math.inf, depth)
         self.update_move(move, score, depth)
 
