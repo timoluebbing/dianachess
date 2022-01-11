@@ -2,6 +2,7 @@ import random
 import ChessEngine
 import math
 import copy
+import time
 
 ## Sebastian Volz
 ## Timo Luebbing
@@ -48,7 +49,7 @@ class Agent:
         player_turn = gs.whiteToMove
         depth = 4
         # move = alpha_beta_search(gs, player_turn, depth)
-        print('hey')
+        start_time = time.time()
         score, move = alpha_beta(gs, player_turn, -math.inf, math.inf, depth)
         self.update_move(move, score, depth)
 
@@ -82,7 +83,6 @@ def howManyPiecesLost(gs: ChessEngine.GameState, is_white_turn):
 
 def isChecked(gs: ChessEngine.GameState, is_white_turn):
     checkExists = gs.checkForPinsAndChecks()[0]
-    ### how do we check if "our player" checked the other one and not the we are checked?
     if checkExists:
         # we are in the position to check
         if gs.whiteToMove == is_white_turn:
@@ -96,7 +96,7 @@ def isChecked(gs: ChessEngine.GameState, is_white_turn):
 
 def is_start_game(gs):
     board = gs.board
-    return board.count("wp") == 8 and board.count("bp") == 8
+    return board.count("wp") == 6 or board.count("bp") == 6
 
 def is_end_game(gs):
     board = gs.board
@@ -108,17 +108,16 @@ def is_end_game(gs):
     if pawns <= 4:
         return True
     special_pieces = ["wN", "bN", "wB", "bB", "wR", "bR"]
-    if len([piece in special_pieces for piece in white_pieces]) <= 2 or len(
-       [piece in special_pieces for piece in black_pieces]) <= 2:
-        return True
+    return len([piece in special_pieces for piece in white_pieces]) <= 2 or len(
+       [piece in special_pieces for piece in black_pieces]) <= 2
 
 def utility(gs, is_max_turn):
     if is_start_game(gs):
-        pass 
+        print("is startgame")
     if is_end_game(gs):
         print("is endgame!!!!")
     
-    return howManyPiecesLost(gs, is_max_turn)
+    return howManyPiecesLost(gs, is_max_turn) + isChecked(gs, is_max_turn)
 
 
 ### Implement Alpha-Beta-Search
