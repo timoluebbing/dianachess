@@ -352,7 +352,7 @@ class GameState:
         Returns
         -------
         Bool,List,List
-            if the Player is in check, list of pins and list of checks
+            if the Player is in check, list of pins and lis21t of checks
 
         """
         pins = []  # squares where the allied pinned piece is and the direction it is pinned from
