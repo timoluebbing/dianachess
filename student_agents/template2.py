@@ -3,6 +3,8 @@ import ChessEngine
 import math
 import copy
 import sys
+import time
+
 ## Sebastian Volz
 ## Timo Luebbing
 
@@ -47,17 +49,26 @@ class Agent:
         ### player white: true, player black: false
         player_turn = gs.whiteToMove
         depth = 4
-        # move = alpha_beta_search(gs, player_turn, depth)
-        print('hey')
 
-        time = 20
-        for i, argument in enumerate(sys.argv):
-            if argument == '--time_control':
-                time = sys.argv[i+1]
-        print(time)
-
+        ## did not work
+        # time_limit = 20
+        # try:
+        #     i = sys.argv.index('--time_control')
+        #     time_limit = sys.argv[i+1]
+        # except:
+        #     print("No time specified")
+        # start_time = time.time()
+        # times = (float(time_limit), start_time)
+        print(self.move_queue)
+        print("prelim")
+        score, prelim_move = alpha_beta(gs, player_turn, -math.inf, math.inf, 2)
+        self.update_move(prelim_move, score, 2)
+        print(len(self.move_queue))
+        print("best")
         score, move = alpha_beta(gs, player_turn, -math.inf, math.inf, depth)
         self.update_move(move, score, depth)
+        print("finished")
+        
 
 
 ### METRICS TO ANALYZE HOW GOOD THE POSITION IS
@@ -119,7 +130,8 @@ def is_end_game(gs):
 
 def utility(gs, is_max_turn):
     if is_start_game(gs):
-        print("is startgame")
+        # print("is startgame")
+        pass
     if is_end_game(gs):
         print("is endgame!!!!")
     
@@ -179,6 +191,11 @@ def min_value(gs, is_max_turn, alpha, beta, depth):
 ### Alpha beta pruning minimax 2. try:
 def alpha_beta(gs, is_max_turn, alpha, beta, depth):
 
+    # time_limit, start_time = times
+    # diff = time.time() - start_time
+    # if time_limit - diff < 5:
+    #     depth -= 2 if depth >= 2 else 0
+    
     if depth == 0:
         return utility(gs, is_max_turn), None
     
@@ -189,7 +206,6 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth):
     for move in moves:
         childGameState = copy.deepcopy(gs)
         childGameState.makeMove(move)
-
         utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1)[0]
 
         if is_max_turn and best_value < utility_child:
