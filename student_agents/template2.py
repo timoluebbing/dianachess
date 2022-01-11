@@ -56,7 +56,7 @@ class Agent:
 
 
 ### METRICS TO ANALYZE HOW GOOD THE POSITION IS
-def howManyPiecesLost(gs: ChessEngine.GameState, is_max_turn):
+def howManyPiecesLost(gs: ChessEngine.GameState, is_white_turn):
     # given a gameState and player: return how many pieces the opponent has lost
     white = 0
     black = 0
@@ -77,10 +77,19 @@ def howManyPiecesLost(gs: ChessEngine.GameState, is_max_turn):
             black += 5
         elif piece == 'bK':
             black += 100
-    if is_max_turn:
+    if is_white_turn:
         return white - black
     else:
         return black - white
+
+def isChecked(gs: ChessEngine.GameState, is_white_turn):
+    checkExists = gs.checkForPinsAndChecks()[0]
+    ### how do we check if "our player" checked the other one and not the we are checked?
+    if checkExists:
+        return 1
+    else:
+        return 0
+
 
 def is_start_game(gs):
     board = gs.board
