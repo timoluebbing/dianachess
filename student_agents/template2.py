@@ -48,10 +48,26 @@ class Agent:
         """
         ### player white: true, player black: false
         player_turn = gs.whiteToMove
-        depth = 2
+        depth = 4
 
+        ## did not work
+        # time_limit = 20
+        # try:
+        #     i = sys.argv.index('--time_control')
+        #     time_limit = sys.argv[i+1]
+        # except:
+        #     print("No time specified")
+        # start_time = time.time()
+        # times = (float(time_limit), start_time)
+        print(self.move_queue)
+        print("prelim")
+        score, prelim_move = alpha_beta(gs, player_turn, -math.inf, math.inf, 2)
+        self.update_move(prelim_move, score, 2)
+        print(len(self.move_queue))
+        print("best")
         score, move = alpha_beta(gs, player_turn, -math.inf, math.inf, depth)
         self.update_move(move, score, depth)
+        print("finished")
         
 
 
@@ -112,20 +128,30 @@ def is_end_game(gs):
     return len([piece in special_pieces for piece in white_pieces]) <= 2 or len(
        [piece in special_pieces for piece in black_pieces]) <= 2
 
-def utility(gs, is_max_turn, move_to_current_gs):
+def utility(gs, is_max_turn):
     if is_start_game(gs):
         # print("is startgame")
         pass
     if is_end_game(gs):
-        # print("is endgame!!!!")
-        pass
+        print("is endgame!!!!")
     
     return howManyPiecesLost(gs, is_max_turn) + isChecked(gs, is_max_turn)
 
 
 ### Implement Alpha-Beta-Search
 def alpha_beta_search(gs, is_max_turn, depth):
-    pass
+    moves = gs.getValidMoves()
+    v = max_value(gs, is_max_turn, - math.inf, math.inf, depth)
+    print('alphabeta value:' , v)
+    best_move = moves[0]
+    for move in moves:
+        nextGameState = copy.deepcopy(gs)
+        nextGameState.makeMove(move)
+        nextGameStateUtil = utility(nextGameState, is_max_turn)
+        if v == nextGameStateUtil:
+            best_move = move
+            return best_move
+    return best_move
 
 
 def max_value(gs, is_max_turn, alpha, beta, depth):
@@ -163,7 +189,7 @@ def min_value(gs, is_max_turn, alpha, beta, depth):
 
 
 ### Alpha beta pruning minimax 2. try:
-def alpha_beta(gs, is_max_turn, alpha, beta, depth, last_move = None):
+def alpha_beta(gs, is_max_turn, alpha, beta, depth):
 
     # time_limit, start_time = times
     # diff = time.time() - start_time
@@ -171,7 +197,7 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth, last_move = None):
     #     depth -= 2 if depth >= 2 else 0
     
     if depth == 0:
-        return utility(gs, is_max_turn, last_move), None
+        return utility(gs, is_max_turn), None
     
     moves = gs.getValidMoves()
     best_value = -math.inf if is_max_turn else math.inf
@@ -180,7 +206,7 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth, last_move = None):
     for move in moves:
         childGameState = copy.deepcopy(gs)
         childGameState.makeMove(move)
-        utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1, move)[0]
+        utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1)[0]
 
         if is_max_turn and best_value < utility_child:
             best_value = utility_child

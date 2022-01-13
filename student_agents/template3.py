@@ -48,8 +48,8 @@ class Agent:
         ## Iterative deepening with alpha beta ##
         for depth in range(2, max_depth + 1, 2):
             print('Current depth = ', depth)
-            score, move = alpha_beta(gs, player_turn, -math.inf, math.inf, depth)
-            self.update_move(move, score, depth)      
+            score, move = alpha_beta(gs, True, -math.inf, math.inf, depth, player_turn)
+            self.update_move(move, score, depth)
 
 
 ### METRICS TO ANALYZE HOW GOOD THE POSITION IS
@@ -120,7 +120,7 @@ def utility(gs, is_max_turn, move_to_current_gs = None):
 
 
 ### Alpha beta pruning minimax 2. try:
-def alpha_beta(gs, is_max_turn, alpha, beta, depth, last_move = None):
+def alpha_beta(gs, is_max_turn, alpha, beta, depth, isWhiteTurn, last_move = None):
 
     # time_limit, start_time = times
     # diff = time.time() - start_time
@@ -128,7 +128,7 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth, last_move = None):
     #     depth -= 2 if depth >= 2 else 0
     
     if depth == 0:
-        return utility(gs, is_max_turn, last_move), None
+        return utility(gs, isWhiteTurn, last_move), None
     
     moves = gs.getValidMoves()
     best_value = -math.inf if is_max_turn else math.inf
@@ -137,7 +137,7 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth, last_move = None):
     for move in moves:
         childGameState = copy.deepcopy(gs)
         childGameState.makeMove(move)
-        utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1, move)[0]
+        utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1, not isWhiteTurn, move)[0]
 
         if is_max_turn and best_value < utility_child:
             best_value = utility_child
@@ -154,3 +154,4 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth, last_move = None):
                 break
     
     return best_value, best_move
+
