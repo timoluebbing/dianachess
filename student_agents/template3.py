@@ -82,32 +82,27 @@ def howManyPiecesLost(gs: ChessEngine.GameState, is_white_turn):
 def isChecked(gs: ChessEngine.GameState, is_white_turn):
     checkExists = gs.checkForPinsAndChecks()[0]
     if checkExists:
-        # we are in the position to check
-        if gs.whiteToMove == is_white_turn:
-            return 1
-        # our opponent is in the position to check
-        else:
-            return -1
+        return 1 if gs.whiteToMove == is_white_turn else -1
     else:
         return 0
 
 
-def movePawnsForward(gs: ChessEngine.GameState, is_white_turn):
+def move_pawns_forward(gs: ChessEngine.GameState, is_white_turn):
     # How far player "white" pawns are
     board = gs.board
     whiteAhead = 0
     blackAhead = 0
     for key, piece in enumerate(board):
         if piece == "bp":
-            howFarAhead = getRow(key)
+            howFarAhead = get_row(key)
             blackAhead += howFarAhead
         elif piece == "wp":
-            howFarAhead = 5 - getRow(key)
+            howFarAhead = 5 - get_row(key)
             whiteAhead += howFarAhead
     return whiteAhead if is_white_turn else blackAhead
 
 
-def getRow(positionArray):
+def get_row(positionArray):
     return positionArray // 6
 
 
@@ -134,7 +129,8 @@ def central_pieces(gs: ChessEngine.GameState, is_white_turn):
 
 
 def castle_util(move, is_white_turn):
-    pass
+    if move.isCastleMove:
+        return 100 if not is_white_turn else -1.5
 
 
 def is_start_game(gs):
@@ -161,12 +157,14 @@ def utility(gs, is_white_turn, move_to_current_gs=None):
         return 1000
 
     if is_start_game(gs):
+        print(castle_util(move_to_current_gs, is_white_turn))
         return howManyPiecesLost(gs, is_white_turn) + \
-               central_pieces(gs, is_white_turn)
+               central_pieces(gs, is_white_turn) + \
+               castle_util(move_to_current_gs, is_white_turn)
 
     if is_end_game(gs):
         return howManyPiecesLost(gs, is_white_turn) + \
-               0.01 * movePawnsForward(gs, is_white_turn) + \
+               0.01 * move_pawns_forward(gs, is_white_turn) + \
                isChecked(gs, is_white_turn)
 
     return howManyPiecesLost(gs, is_white_turn) + \
@@ -175,10 +173,6 @@ def utility(gs, is_white_turn, move_to_current_gs=None):
 
 ### Alpha beta pruning minimax 2. try:
 def alpha_beta(gs, is_max_turn, alpha, beta, depth, isWhiteTurn, last_move=None):
-    # time_limit, start_time = times
-    # diff = time.time() - start_time
-    # if time_limit - diff < 5:
-    #     depth -= 2 if depth >= 2 else 0
 
     if depth == 0:
         return utility(gs, isWhiteTurn, last_move), None
