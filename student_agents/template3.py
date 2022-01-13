@@ -3,6 +3,7 @@ import ChessEngine
 import copy
 import math
 
+
 class Agent:
     def __init__(self):
         self.move_queue = None
@@ -44,7 +45,7 @@ class Agent:
         ## player white: true, player black: false
         player_turn = gs.whiteToMove
         max_depth = 4
-       
+
         ## Iterative deepening with alpha beta ##
         for depth in range(2, max_depth + 1, 2):
             print('Current depth = ', depth)
@@ -81,7 +82,12 @@ def howManyPiecesLost(gs: ChessEngine.GameState, is_white_turn):
 def isChecked(gs: ChessEngine.GameState, is_white_turn):
     checkExists = gs.checkForPinsAndChecks()[0]
     if checkExists:
-        return 1 if gs.whiteToMove == is_white_turn else -1
+        # we are in the position to check
+        if gs.whiteToMove == is_white_turn:
+            return 1
+        # our opponent is in the position to check
+        else:
+            return -1
     else:
         return 0
 
@@ -100,6 +106,7 @@ def movePawnsForward(gs: ChessEngine.GameState, is_white_turn):
             whiteAhead += howFarAhead
     return whiteAhead if is_white_turn else blackAhead
 
+
 def getRow(positionArray):
     return positionArray // 6
 
@@ -109,7 +116,7 @@ def central_pieces(gs: ChessEngine.GameState, is_white_turn):
     black = 0
     board = gs.board
 
-    central_squares       = [board[i] for i in [14, 15, 20, 21]]
+    central_squares = [board[i] for i in [14, 15, 20, 21]]
     outer_central_squares = [board[i] for i in [13, 16, 19, 22]]
 
     for piece in central_squares:
@@ -122,15 +129,18 @@ def central_pieces(gs: ChessEngine.GameState, is_white_turn):
             white += 0.05
         elif piece[0] == 'b':
             black += 0.05
-    
+
     return white - black if is_white_turn else black - white
+
 
 def castle_util(move, is_white_turn):
     pass
 
+
 def is_start_game(gs):
     board = gs.board
     return board.count("wp") == 6 or board.count("bp") == 6
+
 
 def is_end_game(gs):
     board = gs.board
@@ -143,10 +153,13 @@ def is_end_game(gs):
         return True
     special_pieces = ["wN", "bN", "wB", "bB", "wR", "bR"]
     return len([piece in special_pieces for piece in white_pieces]) <= 2 or len(
-       [piece in special_pieces for piece in black_pieces]) <= 2
+        [piece in special_pieces for piece in black_pieces]) <= 2
 
 
-def utility(gs, is_white_turn, move_to_current_gs = None):
+def utility(gs, is_white_turn, move_to_current_gs=None):
+    if gs.checkMate:
+        return 1000
+
     if is_start_game(gs):
         return howManyPiecesLost(gs, is_white_turn) + \
                central_pieces(gs, is_white_turn)
@@ -155,23 +168,21 @@ def utility(gs, is_white_turn, move_to_current_gs = None):
         return howManyPiecesLost(gs, is_white_turn) + \
                0.01 * movePawnsForward(gs, is_white_turn) + \
                isChecked(gs, is_white_turn)
-    
+
     return howManyPiecesLost(gs, is_white_turn) + \
            isChecked(gs, is_white_turn)
 
 
-
 ### Alpha beta pruning minimax 2. try:
-def alpha_beta(gs, is_max_turn, alpha, beta, depth, isWhiteTurn, last_move = None):
-
+def alpha_beta(gs, is_max_turn, alpha, beta, depth, isWhiteTurn, last_move=None):
     # time_limit, start_time = times
     # diff = time.time() - start_time
     # if time_limit - diff < 5:
     #     depth -= 2 if depth >= 2 else 0
-    
+
     if depth == 0:
         return utility(gs, isWhiteTurn, last_move), None
-    
+
     moves = gs.getValidMoves()
     best_value = -math.inf if is_max_turn else math.inf
     best_move = None
@@ -187,13 +198,12 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth, isWhiteTurn, last_move = Non
             alpha = max(alpha, best_value)
             if beta <= alpha:
                 break
-        
+
         elif (not is_max_turn) and best_value > utility_child:
             best_value = utility_child
             best_move = move
             beta = min(beta, best_value)
             if beta <= alpha:
                 break
-    
-    return best_value, best_move
 
+    return best_value, best_move
