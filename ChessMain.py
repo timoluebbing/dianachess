@@ -260,9 +260,7 @@ def main(args):
                 chessai = chessai_white if game_state.whiteToMove else chessai_black
                 return_queue = Queue()  # used to pass data between threads
                 chessai.clear_queue(return_queue)
-                
-                test = chessai.findBestMove(gs=game_state)
-                print(test)
+
                 move_finder_process = Process(target=chessai.findBestMove, args=(game_state, ))
                 move_finder_process.start()
                 start_time = time.time()
@@ -645,9 +643,9 @@ def drawEndGameText(screen, text):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--agent1', default= 'Agent2',type=str, required=False,
+    parser.add_argument('--agent1', type=str, required=True,
                         help='Either path to the .py file containing your agent or "MrRandom".')
-    parser.add_argument('--agent2', default= 'MrRandom',type=str, required=False,
+    parser.add_argument('--agent2', type=str, required=True,
                         help='See --agent_one.')
     parser.add_argument('--output_file', type=str, default=None,
                         help='File to save results to. If not given, all output will be printed to terminal only.'
