@@ -77,6 +77,33 @@ def howManyPiecesLost(gs: ChessEngine.GameState, is_white_turn):
 
     return white - black if is_white_turn else black - white
 
+def movePawnsForward(gs: ChessEngine.GameState, is_white_turn):
+    # How far player "white" pawns are
+    board = gs.board
+    whiteAhead = 0
+    blackAhead = 0
+    for key, piece in enumerate(board):
+        if piece == "wp":
+            howFarAhead = 5 - getRow(key)
+            whiteAhead += howFarAhead
+        if piece == "bp":
+            howFarAhead = getRow(key)
+            blackAhead += howFarAhead
+    if is_white_turn:
+        return whiteAhead
+    else:
+        return blackAhead
+
+def getRow(positionArray):
+    return positionArray // 6
+
+
+
+
+
+
+
+
 def isChecked(gs: ChessEngine.GameState, is_white_turn):
     checkExists = gs.checkForPinsAndChecks()[0]
     if checkExists:
@@ -114,7 +141,7 @@ def utility(gs, is_max_turn, move_to_current_gs = None):
     if is_end_game(gs):
         # print("is endgame!!!!")
         pass
-    
+
     return howManyPiecesLost(gs, is_max_turn) + isChecked(gs, is_max_turn)
 
 

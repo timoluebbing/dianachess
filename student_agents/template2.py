@@ -1,12 +1,8 @@
 import random
 import ChessEngine
-import math
 import copy
-import sys
-import time
+import math
 
-## Sebastian Volz
-## Timo Luebbing
 
 class Agent:
     def __init__(self):
@@ -30,7 +26,7 @@ class Agent:
     def clear_queue(self, outer_queue):
         self.move_queue = outer_queue
 
-    def findBestMove(self, gs: ChessEngine.GameState):
+    def findBestMove(self, gs):
         """
         Parameters
         ----------
@@ -46,29 +42,15 @@ class Agent:
         none
 
         """
-        ### player white: true, player black: false
+        ## player white: true, player black: false
         player_turn = gs.whiteToMove
-        depth = 4
+        max_depth = 4
 
-        ## did not work
-        # time_limit = 20
-        # try:
-        #     i = sys.argv.index('--time_control')
-        #     time_limit = sys.argv[i+1]
-        # except:
-        #     print("No time specified")
-        # start_time = time.time()
-        # times = (float(time_limit), start_time)
-        print(self.move_queue)
-        print("prelim")
-        score, prelim_move = alpha_beta(gs, player_turn, -math.inf, math.inf, 2)
-        self.update_move(prelim_move, score, 2)
-        print(len(self.move_queue))
-        print("best")
-        score, move = alpha_beta(gs, player_turn, -math.inf, math.inf, depth)
-        self.update_move(move, score, depth)
-        print("finished")
-        
+        ## Iterative deepening with alpha beta ##
+        for depth in range(2, max_depth + 1, 2):
+            print('Current depth = ', depth)
+            score, move = alpha_beta(gs, True, -math.inf, math.inf, depth, player_turn)
+            self.update_move(move, score, depth)
 
 
 ### METRICS TO ANALYZE HOW GOOD THE POSITION IS
@@ -93,10 +75,9 @@ def howManyPiecesLost(gs: ChessEngine.GameState, is_white_turn):
             black += 5
         elif piece == 'bK':
             black += 100
-    if is_white_turn:
-        return white - black
-    else:
-        return black - white
+
+    return white - black if is_white_turn else black - white
+
 
 def isChecked(gs: ChessEngine.GameState, is_white_turn):
     checkExists = gs.checkForPinsAndChecks()[0]
@@ -115,6 +96,7 @@ def is_start_game(gs):
     board = gs.board
     return board.count("wp") == 6 or board.count("bp") == 6
 
+
 def is_end_game(gs):
     board = gs.board
     white_pieces = [piece for piece in board if piece[0] == "w"]
@@ -126,79 +108,30 @@ def is_end_game(gs):
         return True
     special_pieces = ["wN", "bN", "wB", "bB", "wR", "bR"]
     return len([piece in special_pieces for piece in white_pieces]) <= 2 or len(
-       [piece in special_pieces for piece in black_pieces]) <= 2
+        [piece in special_pieces for piece in black_pieces]) <= 2
 
-def utility(gs, is_max_turn):
+
+def utility(gs, is_max_turn, move_to_current_gs=None):
     if is_start_game(gs):
         # print("is startgame")
         pass
     if is_end_game(gs):
-        print("is endgame!!!!")
-    
+        # print("is endgame!!!!")
+        pass
+
     return howManyPiecesLost(gs, is_max_turn) + isChecked(gs, is_max_turn)
 
 
-### Implement Alpha-Beta-Search
-def alpha_beta_search(gs, is_max_turn, depth):
-    moves = gs.getValidMoves()
-    v = max_value(gs, is_max_turn, - math.inf, math.inf, depth)
-    print('alphabeta value:' , v)
-    best_move = moves[0]
-    for move in moves:
-        nextGameState = copy.deepcopy(gs)
-        nextGameState.makeMove(move)
-        nextGameStateUtil = utility(nextGameState, is_max_turn)
-        if v == nextGameStateUtil:
-            best_move = move
-            return best_move
-    return best_move
-
-
-def max_value(gs, is_max_turn, alpha, beta, depth):
-    if depth == 0:
-        return utility(gs, is_max_turn)
-
-    v_max = -math.inf
-    moves = gs.getValidMoves()
-
-    for move in moves:
-        nextGameState = copy.deepcopy(gs)
-        nextGameState.makeMove(move)
-        v_max = max(v_max, min_value(nextGameState, is_max_turn, alpha, beta, depth - 1))
-        if v_max >= beta:
-            return v_max
-        alpha = max(alpha, v_max)
-    return v_max
-
-
-def min_value(gs, is_max_turn, alpha, beta, depth):
-    if depth == 0:
-        return utility(gs, is_max_turn)
-
-    v_min = math.inf
-    moves = gs.getValidMoves()
-
-    for move in moves:
-        nextGameState = copy.deepcopy(gs)
-        nextGameState.makeMove(move)
-        v_min = min(v_min, max_value(nextGameState, is_max_turn, alpha, beta, depth - 1))
-        if v_min <= alpha:
-            return v_min
-        beta = min(beta, v_min)
-    return v_min
-
-
 ### Alpha beta pruning minimax 2. try:
-def alpha_beta(gs, is_max_turn, alpha, beta, depth):
-
+def alpha_beta(gs, is_max_turn, alpha, beta, depth, isWhiteTurn, last_move=None):
     # time_limit, start_time = times
     # diff = time.time() - start_time
     # if time_limit - diff < 5:
     #     depth -= 2 if depth >= 2 else 0
-    
+
     if depth == 0:
-        return utility(gs, is_max_turn), None
-    
+        return utility(gs, isWhiteTurn, last_move), None
+
     moves = gs.getValidMoves()
     best_value = -math.inf if is_max_turn else math.inf
     best_move = None
@@ -206,7 +139,7 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth):
     for move in moves:
         childGameState = copy.deepcopy(gs)
         childGameState.makeMove(move)
-        utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1)[0]
+        utility_child = alpha_beta(childGameState, not is_max_turn, alpha, beta, depth - 1, not isWhiteTurn, move)[0]
 
         if is_max_turn and best_value < utility_child:
             best_value = utility_child
@@ -214,62 +147,13 @@ def alpha_beta(gs, is_max_turn, alpha, beta, depth):
             alpha = max(alpha, best_value)
             if beta <= alpha:
                 break
-        
+
         elif (not is_max_turn) and best_value > utility_child:
             best_value = utility_child
             best_move = move
             beta = min(beta, best_value)
             if beta <= alpha:
                 break
-    
+
     return best_value, best_move
 
-
-### Implement MiniMax algorithm.
-### Utility for starters: how many pieces the opponent looses.
-### Depth at first: two
-
-# given gamestate, return move
-def minimax(gs, is_max_turn, depth):
-    moves = gs.getValidMoves()
-    max = -math.inf
-    maxMove = moves[0]
-    for move in moves:
-        nextGameState = copy.deepcopy(gs)
-        nextGameState.makeMove(move)
-        nextGameStateUtility = minValue(nextGameState, is_max_turn, depth - 1)
-        if nextGameStateUtility > max:
-            max = nextGameStateUtility
-            maxMove = move
-    return maxMove
-
-
-def minValue(gs, is_max_turn, depth):
-    if depth == 0:
-        return utility(gs, is_max_turn)
-
-    moves = gs.getValidMoves()
-    min = math.inf
-
-    for move in moves:
-        nextGameState = copy.deepcopy(gs)
-        nextGameState.makeMove(move)
-        nextGameStateUtility = maxValue(nextGameState, is_max_turn, depth - 1)
-        if nextGameStateUtility < min:
-            min = nextGameStateUtility
-    return min
-
-
-def maxValue(gs, is_max_turn, depth):
-    if depth == 0:
-        return utility(gs, is_max_turn)
-
-    moves = gs.getValidMoves()
-    max = -math.inf
-    for move in moves:
-        nextGameState = copy.deepcopy(gs)
-        nextGameState.makeMove(move)
-        nextGameStateUtility = minValue(nextGameState, is_max_turn, depth - 1)
-        if nextGameStateUtility > max:
-            max = nextGameStateUtility
-    return max
